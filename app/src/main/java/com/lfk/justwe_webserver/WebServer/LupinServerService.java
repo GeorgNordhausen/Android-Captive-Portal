@@ -12,6 +12,7 @@ import android.net.wifi.WifiManager;
 import android.os.Binder;
 import android.os.IBinder;
 
+import com.dega1999.dns.liar.DnsLiar;
 import com.lfk.justwe_webserver.R;
 
 /**
@@ -20,12 +21,17 @@ import com.lfk.justwe_webserver.R;
  * @author liufengkai
  *         Created by liufengkai on 16/1/6.
  */
-public class WebServerService extends Service {
-    private WebServer.MessageHandler logResult;
+
+//TODO rivedere come chiudere correttamente il service
+//TODO non sono sicuro sia giusto cosi'.
+
+public class LupinServerService extends Service {
+    private LupinServer.MessageHandler logResult;
     private NotificationManager notificationManager;
     private Notification notification;
     private final IBinder mBinder = new LocalBinder();
-    private Servers webServers;
+    private WebServer webServer;
+    private DnsLiar dnsServer;
     private static Activity engine;
     private PendingIntent contentIntent;
     private boolean IsRunning;
@@ -41,7 +47,7 @@ public class WebServerService extends Service {
     }
 
     public static void init(Activity engine) {
-        WebServerService.engine = engine;
+        LupinServerService.engine = engine;
     }
 
 
@@ -53,7 +59,7 @@ public class WebServerService extends Service {
     private void updateNotification(String text) {
         contentIntent = PendingIntent.getActivity(this, 0, new Intent(this, engine.getClass()), 0);
         Notification.Builder builder = new Notification.Builder(engine)
-                .setContentTitle("WebServer")
+                .setContentTitle("LupinServer running")
                 .setContentText(text)
                 .setContentIntent(contentIntent)
                 .setSmallIcon(R.mipmap.ic_launcher)
@@ -69,12 +75,12 @@ public class WebServerService extends Service {
     }
 
     public class LocalBinder extends Binder {
-        WebServerService getService() {
-            return WebServerService.this;
+        LupinServerService getService() {
+            return LupinServerService.this;
         }
     }
 
-    public void startServer(WebServer.MessageHandler logResult, int port) {
+    public void startServer(LupinServer.MessageHandler logResult, int port) {
         this.logResult = logResult;
         // running
         setIsRunning(true);
@@ -82,7 +88,8 @@ public class WebServerService extends Service {
         WifiManager wifiManager = (WifiManager) getSystemService(WIFI_SERVICE);
         WifiInfo wifiInfo = wifiManager.getConnectionInfo();
 
-        WebServerDefault.setWebServerIp(WebServerDefault.intToIp(wifiInfo.getIpAddress()));
+        //WebServerDefault.setWebServerIp(WebServerDefault.intToIp(wifiInfo.getIpAddress()));
+        WebServerDefault.setWebServerIp("192.168.43.1");
         // if not in wifi
         if (wifiInfo.getSupplicantState() != SupplicantState.COMPLETED) {
             this.logResult.OnError("Please connect to a WIFI-network.");
@@ -93,18 +100,23 @@ public class WebServerService extends Service {
             }
         }
 
-        webServers = new Servers(engine.getApplicationContext(), logResult, port);
-        webServers.start();
+        webServer = new WebServer(engine.getApplicationContext(), logResult, port);
+        webServer.start();
 
-        updateNotification("running on " +
-                WebServerDefault.WebServerIp + ":" + port);
+        dnsServer = new DnsLiar(engine.getApplicationContext(),logResult);
+        dnsServer.start();
+        updateNotification("Webserver UP: " + WebServerDefault.WebServerIp + ":" + port);
     }
 
     public void stopServer() {
         setIsRunning(false);
-        if(webServers != null) {
-            webServers.stopServer();
-            webServers.interrupt();
+        if(webServer != null) {
+            webServer.stopServer();
+            webServer.interrupt();
+        }
+        if(dnsServer!= null) {
+            dnsServer.stopServer();
+            dnsServer.interrupt();
         }
     }
 

@@ -11,7 +11,7 @@ import java.io.File;
 public class WebServerDefault {
 
     public static final String WebServerFiles = Environment
-            .getExternalStorageDirectory() + "/JustWeWebServer";
+            .getExternalStorageDirectory() + "/LupinServer";
 
     public static final String WebServerServiceConnected = "Service connected";
 
