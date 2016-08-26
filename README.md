@@ -14,7 +14,9 @@ Once a new device is connected, a DNS server resolves all the dns request with t
 You can do the same attack with a pc, a raspberry pi or an [esp8266](https://github.com/reischle/CaptiveIntraweb).. but I decided to build one on android, because smartphones are easier to bring everywhere and I wanted something easy to use.
 
 ## Requirements  
-I suggest to use an old phone, with a sim card with 0 euro on it: even if someone bypass the captive portal in some way... you spend 0. 
+I suggest to use an old phone, with a sim card with 0 euro on it: even if someone bypass the captive portal in some way... you spend 0.
+
+
 I used a Nexus 5, with android 6 and **rooted**: the rooting is needed to add 2 iptables rules, to redirect all the incoming traffic from ports 80 and 53 to (Web Server) 8080 and (Dns Server)8053.
 
 The 2 servers runs on the same android service controlled by an unique activity.
